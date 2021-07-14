@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    A simple scirpt to interp data in frequency domain
+    A simple script to interp data in frequency domain
 
 Created on Sun May 16 16:00:13 2021
 @author: mliu
