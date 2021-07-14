@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Nov 30 14:06:55 2020
+
+@author: mliu
+"""
+
+from obspy import read
+import os
+import os.path
+import datetime
+from obspy import UTCDateTime
+timelist = "./tt"
+station="station.dat"
+with open(timelist,"r") as ots:
+    for ot in ots:
+        if(ot.split()[0]=="#"):
+            jk1, year, month, day, hour, minute, tmp, evla, evlo, evdp, jk2, jk3, jk4, jk5, eventid  = ot.split()
+            sec,msec=tmp.split(".")
+            dirname="./data/"+str(eventid)
+            if not os.path.exists(dirname):
+                os.mkdir(dirname)
+                otime=UTCDateTime(int(year),int(month),int(day),int(hour),int(minute),int(sec),int(msec+"000"))
+                starttime=otime-5-8*3600
+                endtime=otime+100-8*3600
+                a = datetime.datetime(2020,12,31)
+                if int(hour)<8:
+                    b = datetime.datetime(int(year),int(month),int(day)-1)
+                else:
+                    b = datetime.datetime(int(year),int(month),int(day))
+                c = b-a
+                if(len(str(c.days))==2):
+                    date="20210"+str(c.days)
+                else:
+                    date="2021"+str(c.days)
+                with open(station,"r") as stas:
+                    for sta in stas:
+                        sta=sta.rstrip()
+                        wavdire="/data/dataPER/YN/data/onlyYN5day/GG/2021/"+sta+"/"+date+"/*HE*mseed"
+                        wavdirn="/data/dataPER/YN/data/onlyYN5day/GG/2021/"+sta+"/"+date+"/*HN*mseed"
+                        wavdirz="/data/dataPER/YN/data/onlyYN5day/GG/2021/"+sta+"/"+date+"/*HZ*mseed"
+                        try:
+                            wave=read(wavdire,format='MSEED',starttime=starttime,endtime=endtime)
+                            wavn=read(wavdirn,format='MSEED',starttime=starttime,endtime=endtime)
+                            wavz=read(wavdirz,format='MSEED',starttime=starttime,endtime=endtime)
+                            wave.filter('bandpass',freqmin=1,freqmax=12,zerophase=True)
+                            wavn.filter('bandpass',freqmin=1,freqmax=12,zerophase=True)
+                            wavz.filter('bandpass',freqmin=1,freqmax=12,zerophase=True)
+                            wave[0].write(dirname+"/"+sta+".BHE.SAC.cut",format='SAC')
+                            wavn[0].write(dirname+"/"+sta+".BHN.SAC.cut",format='SAC')
+                            wavz[0].write(dirname+"/"+sta+".BHZ.SAC.cut",format='SAC')
+                        except:
+                            pass
