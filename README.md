@@ -1,10 +1,6 @@
-**********************Fast double-difference cross-correlation (FDTCC)******************************************
-*								       Authors:	Min Liu & Miao Zhang           *	   				      
-*										m.liu@dal.ca&miao.zhang@dal.ca *			   
-*										Dalhouise University           *
-*										Nov. 15 2019		       *
-****************************************************************************************************************
-![image](https://github.com/MinLiu19/FDTCC/blob/main/Workflow.jpg)
+			Fast double-difference cross-correlation (FDTCC)
+							Authors: Min Liu & Miao Zhang
+							m.liu@dal.ca & miao.zhang@dal.ca
 1.Usage
 	FDTCC -C(ife/ifd/ifp) -W(wb/wa/wf/wbs/was/wfs) -D(delta/threshold/thre_SNR/thre_shift)
 	-G(trx/trh/tdx/tdh) -B(low/high) -F(f)
@@ -37,3 +33,4 @@
 
 4.Demo
 	$bash runFCC.sh
+![image](https://github.com/MinLiu19/FDTCC/blob/main/Workflow.jpg)
