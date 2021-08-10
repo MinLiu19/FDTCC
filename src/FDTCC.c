@@ -301,7 +301,7 @@ int main(int argc, char** argv)
     ST = (STATION*)malloc(sizeof(STATION) * NS);
     k = 0;
     while (fgets(lines, 100, fp1) != NULL) {
-        sscanf(lines, "%f %f %s %s %s %f", &ST[k].stla, &ST[k].stlo, ST[k].net,
+        sscanf(lines, "%f %f %s %s %s %f", &ST[k].stlo, &ST[k].stla, ST[k].net,
             ST[k].sta, ST[k].comp, &ST[k].elev);
         k++;
         if (k > NS) {
@@ -326,7 +326,7 @@ int main(int argc, char** argv)
     k = 0;
     while (fgets(lines, 100, fp1) != NULL) {
         sscanf(lines, "%s %s %f %f %f %f %f %f %f %d", EVE[k].date, EVE[k].time,
-            &EVE[k].evlo, &EVE[k].evla, &EVE[k].evdp, &jk, &jk1, &jk2, &jk3,
+            &EVE[k].evla, &EVE[k].evlo, &EVE[k].evdp, &jk, &jk1, &jk2, &jk3,
             &EVE[k].event);
         if (EVE[k].evdp > trh) {
             fprintf(stderr, "event out of the travel-time table, please update it\n");
@@ -483,8 +483,8 @@ int main(int argc, char** argv)
             markP[i] = 0;
             //fprintf(stderr,"no station %s\n",staP[i]);
         } else if (low > 0 && high > 0) {
-            bpcc(waveP[i], hd1, low, high);
-        }
+	    bpcc(waveP[i], hd1, low, high);
+	}
         if ((waveS1[i] = read_sac2(staS1[i], &hd2, f, s1triger[i] - timezone - wbs,
                  s1triger[i] - timezone + was))
             == NULL) {
@@ -664,7 +664,7 @@ void Cal_tt(PAIR* PO, PAIR* PT, EVENT* EVE, STATION* ST)
             ddistaz(ST[j].stla, ST[j].stlo, EVE[event[0]].evla, EVE[event[0]].evlo, &GCarc1);
             ih = rint(EVE[event[0]].evdp / tdh);
             ig = ih * rint(trx / tdx) + rint(GCarc1 / tdx);
-            PT[i].pk[k].arr1 = TB[ig].ptime + (GCarc1 - TB[ig].gdist) * TB[ig].prayp + (EVE[event[0]].evdp - TB[ig].dep) * TB[ig].phslow;
+	    PT[i].pk[k].arr1 = TB[ig].ptime + (GCarc1 - TB[ig].gdist) * TB[ig].prayp + (EVE[event[0]].evdp - TB[ig].dep) * TB[ig].phslow;
             PT[i].pk[k + 1].arr1 = TB[ig].stime + (GCarc1 - TB[ig].gdist) * TB[ig].srayp + (EVE[event[0]].evdp - TB[ig].dep) * TB[ig].shslow;
             ddistaz(ST[j].stla, ST[j].stlo, EVE[event[1]].evla, EVE[event[1]].evlo, &GCarc2);
             ih = rint(EVE[event[1]].evdp / tdh);
@@ -673,7 +673,7 @@ void Cal_tt(PAIR* PO, PAIR* PT, EVENT* EVE, STATION* ST)
             PT[i].pk[k + 1].arr2 = TB[ig].stime + (GCarc2 - TB[ig].gdist) * TB[ig].srayp + (EVE[event[1]].evdp - TB[ig].dep) * TB[ig].shslow;
             PT[i].pk[k].diff = PT[i].pk[k].arr2 - PT[i].pk[k].arr1;
             PT[i].pk[k + 1].diff = PT[i].pk[k + 1].arr2 - PT[i].pk[k + 1].arr1;
-            k = k + 2;
+	    k = k + 2;
         }
     }
 }
@@ -772,7 +772,7 @@ void Correct_Pshift(PAIR* PT, float* a, char** b, int* c)
                 for (k = 0; k < 2 * ns; k++) {
                     if (strcmp(PT[j].pk[k].sta, b[i]) == 0 && strcmp(PT[j].pk[k].phase, "P") == 0) {
                         a[i] = a[i] + PT[j].pk[k].arr1;
-                        break;
+			break;
                     }
                 }
                 break;
