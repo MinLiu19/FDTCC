@@ -18,10 +18,10 @@
        		wavDir: waveform directory
        		eveDir: event.sel (optional)
        		dctDir: dt.ct (optional)       
-		paDir:	phast.dat(optionnal)
+		paDir:	phast.dat (optional)
 
 	2.Input file
-		phase.dat		$ in hypoDD format
+		phase.dat		# in hypoDD format
 		event.sel 		# in hypoDD format
 		dt.ct     		# in hypoDD format
 		station.dat		# in REAL format
@@ -29,7 +29,7 @@
 		travel-time table	# in REAL format
 
 	3.Outfile
-		dt.cc			#can be used in hypoDD, Growclust and tomoDD directly
+		dt.cc			# can be used in hypoDD, Growclust and tomoDD directly
 
 	4.Demo
 		$bash runFCC.sh
