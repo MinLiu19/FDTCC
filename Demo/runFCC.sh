@@ -18,13 +18,8 @@ D=0.01/0.7/1/2
 G=3/20/0.02/2
 #specify the path of event.sel, dt.ct and phase.dat (1: yes, 0: default names)
 C=1/1/1
-#input data format (-3: continuous data -5: interpolated event segments)
-F=-5
-if [ $F == -5 ];then
-echo "cut and interpolate event segments"
-delta=`echo $D|gawk -F/ '{print $1}'`
-python interp.py 0.01 $delta #interp data from 0.01 to $delta
-fi
+#input data format (-3: continuous data 0-9: event segments, please cut waveform before a few seconds before event OCT and mark OCT as T0-T9, which can insure you have enough noise before signal to calculate SNR)
+F=-3
 #BP filter, low and high B=-1/-1 will not fiter the data 
 B=2/8
 

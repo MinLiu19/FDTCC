@@ -367,8 +367,8 @@ int main(int argc, char** argv)
     printf("        FDTCC reads %d travel-times\n", k);
 
     // memory check
-    npp = (int)(((wa + wb)) / delta + 1);
-    nss = (int)(((was + wbs)) / delta + 1);
+    npp = (int)(((wa + wb + 2)) / delta + 1);
+    nss = (int)(((was + wbs + 2)) / delta + 1);
     size = ne * ns * 3;
     memory_require = ((size / (1024.0 * 1024.0 * 1024.0)) * npp) * sizeof(float);
     printf("        Memory require > %.2lf GB.\n", memory_require);
@@ -408,7 +408,7 @@ int main(int argc, char** argv)
                 fprintf(fp3, "%s/%s/%s.%s.%c%cN  %s     %.2lf   %d\n", wavDir,
                     EVE[i].date, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].sec, EVE[i].event);
-            } else if (f == -5) {
+            } else if (f == 0) {
                 fprintf(fp1, "%s/%d/%s.%s.%c%cZ  %s     0.0   %d\n", wavDir,
                     EVE[i].event, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].event);
@@ -477,24 +477,28 @@ int main(int argc, char** argv)
         markP[i] = 1;
         markS1[i] = 1;
         markS2[i] = 1;
-        if ((waveP[i] = read_sac2(staP[i], &hd1, f, ptriger[i] - timezone - wb,
-                 ptriger[i] - timezone + wa))
+        if ((waveP[i] = read_sac2(staP[i], &hd1, f, ptriger[i] - timezone - wb - 1,
+                 ptriger[i] - timezone + wa + 1))
             == NULL) {
             markP[i] = 0;
             //fprintf(stderr,"no station %s\n",staP[i]);
         } else if (low > 0 && high > 0) {
 	    bpcc(waveP[i], hd1, low, high);
 	}
-        if ((waveS1[i] = read_sac2(staS1[i], &hd2, f, s1triger[i] - timezone - wbs,
-                 s1triger[i] - timezone + was))
+	//in case user want to check waveform
+	//char tmp[100]; 
+	//sprintf(tmp,"%d/%s.%s.%c%cZ",EVE[i/ns].event,ST[i%ns].net, ST[i%ns].sta, ST[i%ns].comp[0],ST[i%ns].comp[1]);
+	//write_sac(tmp,hd1,waveP[i]);
+        if ((waveS1[i] = read_sac2(staS1[i], &hd2, f, s1triger[i] - timezone - wbs - 1,
+                 s1triger[i] - timezone + was + 1))
             == NULL) {
             markS1[i] = 0;
             //fprintf(stderr,"no station %s\n",staS1[i]);
         } else if (low > 0 && high > 0) {
             bpcc(waveS1[i], hd2, low, high);
         }
-        if ((waveS2[i] = read_sac2(staS2[i], &hd3, f, s2triger[i] - wbs - timezone,
-                 s2triger[i] + was + timezone))
+        if ((waveS2[i] = read_sac2(staS2[i], &hd3, f, s2triger[i] - wbs - timezone - 1,
+                 s2triger[i] + was + timezone + 1))
             == NULL) {
             markS2[i] = 0;
             //fprintf(stderr,"no station %s\n",staS2[i]);
@@ -825,6 +829,7 @@ void SubccP(PAIR* PT, float** waveP, int* a, int i, int j)
     extern int ns;
     extern float delta, wa, wb, wf, thre_shift;
     float w, wa1;
+    int t_shift = (int)(1/delta);
     s_p = PT[i].pk[2 * j + 1].arr1 - PT[i].pk[2 * j].arr1;
     if (s_p <= 0)
         PT[i].pk[2 * j].quality = 0;
@@ -844,18 +849,18 @@ void SubccP(PAIR* PT, float** waveP, int* a, int i, int j)
         normMaster = 0.0;
         norm = 0.0;
         for (k = 0; k <= Wpoint; k++) {
-            norm += waveP[a[1] * ns + j][k] * waveP[a[1] * ns + j][k];
-            normMaster += waveP[a[0] * ns + j][k] * waveP[a[0] * ns + j][k];
+            norm += waveP[a[1] * ns + j][k + t_shift] * waveP[a[1] * ns + j][k + t_shift];
+            normMaster += waveP[a[0] * ns + j][k + t_shift] * waveP[a[0] * ns + j][k + t_shift];
         }
         for (k = 0; k <= Npoint; k++) {
             cc = 0.0;
             if (k <= ref_shift) {
                 for (kk = ref_shift - k; kk <= Wpoint; kk++) {
-                    cc += waveP[a[0] * ns + j][kk - ref_shift + k] * waveP[a[1] * ns + j][kk];
+                    cc += waveP[a[0] * ns + j][kk - ref_shift + k + t_shift] * waveP[a[1] * ns + j][kk + t_shift];
                 }
             } else {
                 for (kk = 0; kk <= Wpoint - (k - ref_shift); kk++) {
-                    cc += waveP[a[0] * ns + j][kk + k - ref_shift] * waveP[a[1] * ns + j][kk];
+                    cc += waveP[a[0] * ns + j][kk + k - ref_shift + t_shift] * waveP[a[1] * ns + j][kk + t_shift];
                 }
             }
             tmp = cc / (sqrt(norm) * sqrt(normMaster));
@@ -878,6 +883,7 @@ void SubccS(PAIR* PT, float** waveS1, float** waveS2, int* a, int i, int j)
     extern int ns;
     extern float wbs, was, delta, wfs, thre_shift;
     int tt;
+    int t_shift = (int)(1/delta);
     float w, wbs1;
     s_p = PT[i].pk[2 * j + 1].arr1 - PT[i].pk[2 * j].arr1;
     if (s_p <= 0)
@@ -904,23 +910,23 @@ void SubccS(PAIR* PT, float** waveS1, float** waveS2, int* a, int i, int j)
         normMaster2 = 0.0;
         norm2 = 0.0;
         for (k = 0; k <= Wpoint; k++) {
-            norm1 += waveS1[a[1] * ns + j][tt + k] * waveS1[a[1] * ns + j][tt + k];
-            normMaster1 += waveS1[a[0] * ns + j][tt + k] * waveS1[a[0] * ns + j][tt + k];
-            norm2 += waveS2[a[1] * ns + j][tt + k] * waveS2[a[1] * ns + j][k + tt];
-            normMaster2 += waveS2[a[0] * ns + j][tt + k] * waveS2[a[0] * ns + j][tt + k];
+            norm1 += waveS1[a[1] * ns + j][tt + k +t_shift] * waveS1[a[1] * ns + j][tt + k +t_shift];
+            normMaster1 += waveS1[a[0] * ns + j][tt + k + t_shift] * waveS1[a[0] * ns + j][tt + k + t_shift];
+            norm2 += waveS2[a[1] * ns + j][tt + k + t_shift] * waveS2[a[1] * ns + j][k + tt + t_shift];
+            normMaster2 += waveS2[a[0] * ns + j][tt + k + t_shift] * waveS2[a[0] * ns + j][tt + k + t_shift];
         }
         for (k = 0; k <= Npoint; k++) {
             cc1 = 0.0;
             cc2 = 0.0;
             if (k <= ref_shift) {
                 for (kk = ref_shift - k; kk <= Wpoint; kk++) {
-                    cc1 += waveS1[a[0] * ns + j][tt + kk - ref_shift + k] * waveS1[a[1] * ns + j][tt + kk];
-                    cc2 += waveS2[a[0] * ns + j][tt + kk - ref_shift + k] * waveS2[a[1] * ns + j][tt + kk];
+                    cc1 += waveS1[a[0] * ns + j][tt + kk - ref_shift + k + t_shift] * waveS1[a[1] * ns + j][tt + kk + t_shift];
+                    cc2 += waveS2[a[0] * ns + j][tt + kk - ref_shift + k + t_shift] * waveS2[a[1] * ns + j][tt + kk + t_shift];
                 }
             } else {
                 for (kk = 0; kk <= Wpoint - (k - ref_shift); kk++) {
-                    cc1 += waveS1[a[0] * ns + j][tt + kk - ref_shift + k] * waveS1[a[1] * ns + j][tt + kk];
-                    cc2 += waveS2[a[0] * ns + j][tt + kk - ref_shift + k] * waveS2[a[1] * ns + j][tt + kk];
+                    cc1 += waveS1[a[0] * ns + j][tt + kk - ref_shift + k + t_shift] * waveS1[a[1] * ns + j][tt + kk + t_shift];
+                    cc2 += waveS2[a[0] * ns + j][tt + kk - ref_shift + k + t_shift] * waveS2[a[1] * ns + j][tt + kk + t_shift];
                 }
             }
             tmp = ((cc1 / (sqrt(norm1) * sqrt(normMaster1))) + (cc2 / (sqrt(norm2) * sqrt(normMaster2)))) / 2;
@@ -940,6 +946,7 @@ void Cal_pSNR(float** wave, int* mark)
     extern int ns, ne;
     int i, j, k;
     double s, n;
+    int t_shift = (int)(1/delta);
     int spoint, npoint;
     extern EVENT* EVE;
     spoint = (int)(wa / delta - 0.5);
@@ -953,9 +960,9 @@ void Cal_pSNR(float** wave, int* mark)
             s = 0;
             n = 0;
             for (j = 0; j < spoint; j++)
-                s += wave[i * ns + k][j + npoint] * wave[i * ns + k][j + npoint];
+                s += wave[i * ns + k][j + npoint + t_shift] * wave[i * ns + k][j + npoint + t_shift];
             for (j = 0; j < npoint; j++)
-                n += wave[i * ns + k][j] * wave[i * ns + k][j];
+                n += wave[i * ns + k][j + t_shift] * wave[i * ns + k][j + t_shift];
             EVE[i].pSNR[k] = (s / spoint) / (n / npoint);
         }
     }
@@ -966,6 +973,7 @@ void Cal_sSNR(float** wave1, float** wave2, int* mark)
     extern float delta, was, wbs;
     extern int ns, ne;
     int i, j, k;
+    int t_shift = (int)(1/delta);
     double s1, n1, s2, n2;
     int spoint, npoint;
     extern EVENT* EVE;
@@ -982,13 +990,13 @@ void Cal_sSNR(float** wave1, float** wave2, int* mark)
             s2 = 0;
             n2 = 0;
             for (j = 0; j < spoint; j++)
-                s1 += wave1[i * ns + k][j + npoint] * wave1[i * ns + k][j + npoint];
+                s1 += wave1[i * ns + k][j + npoint + t_shift] * wave1[i * ns + k][j + npoint + t_shift];
             for (j = 0; j < npoint; j++)
-                n1 += wave1[i * ns + k][j] * wave1[i * ns + k][j];
+                n1 += wave1[i * ns + k][j + t_shift] * wave1[i * ns + k][j + t_shift];
             for (j = 0; j < spoint; j++)
-                s2 += wave2[i * ns + k][j + npoint] * wave2[i * ns + k][j + npoint];
+                s2 += wave2[i * ns + k][j + npoint + t_shift] * wave2[i * ns + k][j + npoint + t_shift];
             for (j = 0; j < npoint; j++)
-                n2 += wave2[i * ns + k][j] * wave2[i * ns + k][j];
+                n2 += wave2[i * ns + k][j + t_shift] * wave2[i * ns + k][j + t_shift];
             EVE[i].sSNR[k] = 0.5 * ((s1 / spoint) / (n1 / npoint) + (s2 / spoint) / (n2 / npoint));
         }
     }
