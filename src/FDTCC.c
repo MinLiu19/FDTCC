@@ -408,7 +408,7 @@ int main(int argc, char** argv)
                 fprintf(fp3, "%s/%s/%s.%s.%c%cN  %s     %.2lf   %d\n", wavDir,
                     EVE[i].date, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].sec, EVE[i].event);
-            } else if (f == 0) {
+            } else if (f >= 0 && f<=9) {
                 fprintf(fp1, "%s/%d/%s.%s.%c%cZ  %s     0.0   %d\n", wavDir,
                     EVE[i].event, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].event);
