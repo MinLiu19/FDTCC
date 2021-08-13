@@ -9,7 +9,7 @@
 		-W: waveform window length before and after picks and their maximum shift length
 		-D: sampling interval, CC threshold, SNR threshold, maximum abs(t1-t2) of the two picks
 		-G: ranges and grids in horizontal direction and depth (in traveltime table)
-		-F: input data format (-3: continuous data; -5: event segments)
+		-F: input data format (0: continuous data; 1: event segments)
 		-B: waveform bandpass filtering (e.g., 2/8; -1/-1: no filter applied).
       	   	SAC name format: date/net.sta.comp, e.g., 20210101/AA.BBBB.HHZ
                            or eventID/net.sta.comop, e.g., 8/AA.BBBB.HHZ).
@@ -19,7 +19,6 @@
        		eveDir: event.sel (optional)
        		dctDir: dt.ct (optional)       
 		paDir:	phast.dat (optional)
-
 	2.Input file
 		phase.dat		# in hypoDD format
 		event.sel 		# in hypoDD format
