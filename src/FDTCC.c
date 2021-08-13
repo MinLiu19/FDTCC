@@ -207,9 +207,9 @@ int main(int argc, char** argv)
                         "phase.dat (1: yes, 0: default names)\n");
         fprintf(stderr, "	-W: waveform window length before and after "
                         "picks and their maximum shift length\n");
-        fprintf(stderr, "	-D: sampling interval, CC threshold, SNR threshold, maximum abs(t1-t2) of the two picks\n");
+        fprintf(stderr, "	-D: sampling interval, CC threshold, SNR threshold, max arrival time diff of the pick pair\n");
         fprintf(stderr, "	-G: ranges and grids in horizontal direction and depth (in traveltime table)\n");
-        fprintf(stderr, "	-F: input data format (-3: continuous data; -5: event segments)\n");
+        fprintf(stderr, "	-F: input data format (0: continuous data; 1: event segments)\n");
         fprintf(stderr, "	-B: waveform bandpass filtering (e.g., 2/8; "
                         "-1/-1: no filter applied).\n");
         fprintf(stderr, "         SAC name format: date/net.sta.comp, e.g., 20210101/AA.BBBB.HHZ\n"
@@ -398,7 +398,7 @@ int main(int argc, char** argv)
     }
     for (i = 0; i < ne; i++) {
         for (j = 0; j < ns; j++) {
-            if (f == -3) {
+            if (f == 0) {
                 fprintf(fp1, "%s/%s/%s.%s.%c%cZ  %s      %.2lf   %d\n", wavDir,
                     EVE[i].date, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].sec, EVE[i].event);
@@ -408,7 +408,7 @@ int main(int argc, char** argv)
                 fprintf(fp3, "%s/%s/%s.%s.%c%cN  %s     %.2lf   %d\n", wavDir,
                     EVE[i].date, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].sec, EVE[i].event);
-            } else if (f >= 0 && f<=9) {
+            } else if (f == 1) {
                 fprintf(fp1, "%s/%d/%s.%s.%c%cZ  %s     0.0   %d\n", wavDir,
                     EVE[i].event, ST[j].net, ST[j].sta, ST[j].comp[0], ST[j].comp[1],
                     ST[j].sta, EVE[i].event);
@@ -477,7 +477,7 @@ int main(int argc, char** argv)
         markP[i] = 1;
         markS1[i] = 1;
         markS2[i] = 1;
-        if ((waveP[i] = read_sac2(staP[i], &hd1, f, ptriger[i] - timezone - wb - 1,
+        if ((waveP[i] = read_sac2(staP[i], &hd1, -3, ptriger[i] - timezone - wb - 1,
                  ptriger[i] - timezone + wa + 1))
             == NULL) {
             markP[i] = 0;
@@ -489,7 +489,7 @@ int main(int argc, char** argv)
 	//char tmp[100]; 
 	//sprintf(tmp,"%d/%s.%s.%c%cZ",EVE[i/ns].event,ST[i%ns].net, ST[i%ns].sta, ST[i%ns].comp[0],ST[i%ns].comp[1]);
 	//write_sac(tmp,hd1,waveP[i]);
-        if ((waveS1[i] = read_sac2(staS1[i], &hd2, f, s1triger[i] - timezone - wbs - 1,
+        if ((waveS1[i] = read_sac2(staS1[i], &hd2, -3, s1triger[i] - timezone - wbs - 1,
                  s1triger[i] - timezone + was + 1))
             == NULL) {
             markS1[i] = 0;
@@ -497,7 +497,7 @@ int main(int argc, char** argv)
         } else if (low > 0 && high > 0) {
             bpcc(waveS1[i], hd2, low, high);
         }
-        if ((waveS2[i] = read_sac2(staS2[i], &hd3, f, s2triger[i] - wbs - timezone - 1,
+        if ((waveS2[i] = read_sac2(staS2[i], &hd3, -3, s2triger[i] - wbs - timezone - 1,
                  s2triger[i] + was + timezone + 1))
             == NULL) {
             markS2[i] = 0;
