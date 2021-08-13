@@ -116,9 +116,9 @@ EVENT* EVE;
 PHASEINF* PIN;
 
 // globe parameters
-int NP = 1000000;
-int NS = 100;
-int NE = 100000;
+int NP = 1700000;
+int NS = 120;
+int NE = 30000;
 int np; // number of event pairs
 int ns; // number of stations
 int ne; // number of events
@@ -312,7 +312,7 @@ int main(int argc, char** argv)
     }
     ns = k;
     fclose(fp1);
-    printf("        FDTCC reads %d stations\n", k);
+    printf("	FDTCC reads %d stations\n", k);
     // read event information (event.sel)
     if ((fp1 = fopen(eveDir, "r")) == NULL) {
         fprintf(stderr, "Unable to open event.sel\n");
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
         }
     }
     ne = k;
-    printf("        FDTCC reads %d events\n", k);
+    printf("	FDTCC reads %d events\n", k);
     Transfer_sec(EVE, ne);
     fclose(fp1);
     // read tt table (REAL format)
@@ -364,17 +364,17 @@ int main(int argc, char** argv)
             exit(-1);
         }
     }
-    printf("        FDTCC reads %d travel-times\n", k);
+    printf("	FDTCC reads %d travel-times\n", k);
 
     // memory check
     npp = (int)(((wa + wb + 2)) / delta + 1);
     nss = (int)(((was + wbs + 2)) / delta + 1);
     size = ne * ns * 3;
     memory_require = ((size / (1024.0 * 1024.0 * 1024.0)) * npp) * sizeof(float);
-    printf("        Memory require > %.2lf GB.\n", memory_require);
+    printf("	Memory require > %.2lf GB.\n", memory_require);
 
     // creat event pairs with theoretical travel times
-    printf("        Creating database... \n");
+    printf("	Creating database... \n");
     PT = (PAIR*)malloc(sizeof(PAIR) * np);
     for (i = 0; i < np; i++) {
         PT[i].pk = (PICK*)malloc(sizeof(PICK) * (ns * 2));
@@ -473,8 +473,9 @@ int main(int argc, char** argv)
     Correct_Pshift(PT, ptriger, la_staP, labelP);
     Correct_Sshift(PT, s1triger, la_staS1, labelS1);
     Correct_Sshift(PT, s2triger, la_staS2, labelS2);
+#pragma omp parallel for shared(waveP, waveS1, waveS2, was, wbs, staP, ptriger, s1triger, s2triger, low, high, timezone, wb, wa, markP, markS1, markS2, np, ns) private(hd1, hd2, hd3, i, j)
     for (i = 0; i < ne * ns; i++) {
-        markP[i] = 1;
+	markP[i] = 1;
         markS1[i] = 1;
         markS2[i] = 1;
         if ((waveP[i] = read_sac2(staP[i], &hd1, -3, ptriger[i] - timezone - wb - 1,
@@ -488,7 +489,8 @@ int main(int argc, char** argv)
 	//in case user want to check waveform
 	//char tmp[100]; 
 	//sprintf(tmp,"%d/%s.%s.%c%cZ",EVE[i/ns].event,ST[i%ns].net, ST[i%ns].sta, ST[i%ns].comp[0],ST[i%ns].comp[1]);
-	//write_sac(tmp,hd1,waveP[i]);
+	//printf("%d/%s.%s.%c%cZ\n",EVE[i/ns].event,ST[i%ns].net, ST[i%ns].sta, ST[i%ns].comp[0],ST[i%ns].comp[1]);
+	//if(markP[i]==1)write_sac(tmp,hd1,waveP[i]);
         if ((waveS1[i] = read_sac2(staS1[i], &hd2, -3, s1triger[i] - timezone - wbs - 1,
                  s1triger[i] - timezone + was + 1))
             == NULL) {
@@ -506,6 +508,7 @@ int main(int argc, char** argv)
             bpcc(waveS2[i], hd3, low, high);
         }
     }
+#pragma omp barrier
     Cal_sSNR(waveS1, waveS2, markS1);
     Cal_pSNR(waveP, markP);
     fclose(fp1);
@@ -555,7 +558,7 @@ int main(int argc, char** argv)
         }
     }
     fclose(fp1);
-    printf("        Results were written in dt.cc\n");
+    printf("	Results were written in dt.cc\n");
     // free memory
     for (i = 0; i < NP; i++) {
         free(PO[i].pk);
@@ -651,10 +654,11 @@ void Cal_tt(PAIR* PO, PAIR* PT, EVENT* EVE, STATION* ST)
 {
     int i, j, ih, ig, k;
     extern float trx, tdx, tdh;
-    extern int np, ne, ns;
+    extern int np, ns;
     int event[2];
     extern TTT* TB;
     double GCarc1, GCarc2;
+    #pragma omp parallel for shared(PO, PT, EVE, ST, TB, np, ns, trx, tdx, tdh) private(i, j, ih, ig, k, event, GCarc1, GCarc2)
     for (i = 0; i < np; i++) {
         Search_event(PO, EVE, event, i);
         PT[i].event1 = PO[i].event1;
@@ -680,6 +684,7 @@ void Cal_tt(PAIR* PO, PAIR* PT, EVENT* EVE, STATION* ST)
 	    k = k + 2;
         }
     }
+    #pragma omp barrier
 }
 
 void Search_event(PAIR* PO, EVENT* EVE, int* serial, int n)
@@ -770,6 +775,7 @@ void ddistaz(double stalat, double stalon, double evtlat, double evtlon,
 void Correct_Pshift(PAIR* PT, float* a, char** b, int* c)
 {
     int i, j, k;
+    #pragma omp parallel for shared(PT, a, b, c, ne, ns, np) private(i, j, k)
     for (i = 0; i < ne * ns; i++) {
         for (j = 0; j < np; j++) {
             if (PT[j].event1 == c[i]) {
@@ -792,11 +798,13 @@ void Correct_Pshift(PAIR* PT, float* a, char** b, int* c)
             }
         }
     }
+    #pragma omp barrier
 }
 
 void Correct_Sshift(PAIR* PT, float* a, char** b, int* c)
 {
     int i, j, k;
+    #pragma omp parallel for shared(PT, a, b, c, ne, ns, np) private(i, j, k)
     for (i = 0; i < ne * ns; i++) {
         for (j = 0; j < np; j++) {
             if (PT[j].event1 == c[i]) {
@@ -819,6 +827,7 @@ void Correct_Sshift(PAIR* PT, float* a, char** b, int* c)
             }
         }
     }
+    #pragma omp barrier
 }
 
 void SubccP(PAIR* PT, float** waveP, int* a, int i, int j)
@@ -951,6 +960,7 @@ void Cal_pSNR(float** wave, int* mark)
     extern EVENT* EVE;
     spoint = (int)(wa / delta - 0.5);
     npoint = (int)(wb / delta - 0.5);
+    #pragma omp parallel for shared(EVE, wave, mark, t_shift, spoint, npoint, ne, ns) private(i, j, k, s, n)
     for (i = 0; i < ne; i++) {
         for (k = 0; k < ns; k++) {
             if (mark[k + i * ns] == 0) {
@@ -966,6 +976,7 @@ void Cal_pSNR(float** wave, int* mark)
             EVE[i].pSNR[k] = (s / spoint) / (n / npoint);
         }
     }
+    #pragma omp barrier
 }
 
 void Cal_sSNR(float** wave1, float** wave2, int* mark)
@@ -979,6 +990,7 @@ void Cal_sSNR(float** wave1, float** wave2, int* mark)
     extern EVENT* EVE;
     spoint = (int)(was / delta - 0.5);
     npoint = (int)(wbs / delta - 0.5);
+    #pragma omp parallel for shared(EVE, wave1, wave2, mark, t_shift, spoint, npoint, ne, ns) private(i, j, k, s1, s2, n1, n2)
     for (i = 0; i < ne; i++) {
         for (k = 0; k < ns; k++) {
             if (mark[i * ns + k] == 0) {
@@ -1000,6 +1012,7 @@ void Cal_sSNR(float** wave1, float** wave2, int* mark)
             EVE[i].sSNR[k] = 0.5 * ((s1 / spoint) / (n1 / npoint) + (s2 / spoint) / (n2 / npoint));
         }
     }
+    #pragma omp barrier
 }
 
 void Replace(PAIR* PT, PHASEINF* PIN, int a, int b)
