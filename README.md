@@ -37,6 +37,6 @@
 		1) Multistage Nucleation of the 2021 Yangbi MS 6.4 Earthquake and Its Foreshocks, Journal of Geophysical Research: Solid Earth, 2022, https://doi.org/10.1029/2022JB024091.
 		2) Investigation of the 2013 Eryuan, Yunnan, China MS 5.5 Earthquake Sequence: Aftershock Migration, Seismogenic Structure and Hazard Implication, Tectonophysics, 2022, https://doi.org/10.1016/j.tecto.2022.229445
 	
-	FDTCC is integrated into the earthquake detection and location workflow - LOC-FLOW, more details please check out our SRL paper:  
+	FDTCC is integrated into the earthquake detection and location workflow - LOC-FLOW, more details please see our SRL paper:  
 		LOC-FLOW: An End-to-End Machine-Learning-Based High-Precision Earthquake Location Workflow, Seismological Research Letters, 2022, https://doi.org/10.1785/0220220019
 ![image](https://github.com/MinLiu19/FDTCC/blob/main/Workflow.jpg)
